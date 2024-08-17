@@ -4,7 +4,7 @@ import { Organization } from './organization.entity';
 
 @Entity()
 export class OrgLeaveType {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty({
@@ -28,26 +28,35 @@ export class OrgLeaveType {
     nullable: false,
   })
   leaveDescription: string;
+  @ApiProperty({
+    description:
+      'Additional information or notes for this kind of leaves, that employees should know',
+    maxLength: 500,
+    required: false,
+  })
+  @Column({
+    length: '500',
+    nullable: true,
+  })
+  additionalInfo?: string;
 
   @ApiProperty({
-    description: 'Maximum leaves allowed per year',
+    description: 'Maximum allowed per year for this type of leave',
     required: true,
   })
   @Column({
-    type: 'int',
     nullable: false,
   })
   maxLeavesPerYear: number;
 
   @ApiProperty({
-    description: 'Monthly restriction on leaves',
-    required: true,
+    description: 'Monthly restriction on this type of leave',
   })
   @Column({
-    type: 'int',
+    default: 0,
     nullable: true,
   })
-  monthlyRestriction: number;
+  monthlyRestriction?: number;
 
   @ManyToOne(() => Organization, (organization) => organization.orgLeaveTypes)
   organization: Organization;

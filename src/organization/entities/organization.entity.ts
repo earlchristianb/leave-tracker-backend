@@ -15,13 +15,14 @@ import { v4 as uuidv4 } from 'uuid';
 export class Organization {
   @ApiProperty({
     example: uuidv4(),
-    description: 'The generated uuid for the AreaCode',
+    description: 'The generated uuid for the Organization',
   })
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid'
+  )
   id: string;
 
   @ApiProperty({
-    description: 'Invite code for the organization',
+    description: 'Invite code for the organization, use to join the organization when signing up as a member',
     maxLength: 10,
     minLength: 6,
     required: true,
@@ -30,6 +31,7 @@ export class Organization {
   @Column({
     nullable: false,
     unique: true,
+    length: 10,
   })
   inviteCode: string;
 
@@ -49,7 +51,7 @@ export class Organization {
     required: true,
   })
   @Column({
-    nullable: false,
+    nullable: true,
   })
   description: string;
 
@@ -59,12 +61,24 @@ export class Organization {
   })
   @OneToMany(() => OrgLeaveType, (orgLeaveType) => orgLeaveType.organization, {
     cascade: true,
+    eager: true,
   })
   orgLeaveTypes: OrgLeaveType[];
 
+  // @ApiProperty({
+  //   description: 'Types of leaves available in the organization',
+  //   type: () => [OrgLeaveType],
+  // })
+  // createdBy: string;
+  @ApiProperty({
+    description: 'The Date when the organization was created',
+  })
   @CreateDateColumn()
   created_at: Date;
 
+  @ApiProperty({
+    description: 'The Date when the organization was last updated',
+  })
   @UpdateDateColumn()
   updated_at: Date;
 

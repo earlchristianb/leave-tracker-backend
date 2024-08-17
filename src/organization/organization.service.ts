@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from './entities/organization.entity';
 import { Repository } from 'typeorm';
 import { OrgLeaveType } from './entities/organization-leave-type.entity';
+import { CreateOrganizationDto } from './dto/organization.dto';
+import { CreateOrganizationLeaveTypeDto } from './dto/organization-leave-type.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -19,6 +21,7 @@ export class OrganizationService {
   async findOne(id: string): Promise<Organization> {
     return await this.organizationRepository.findOne({
       where: { id },
+
     });
   }
 
@@ -28,7 +31,7 @@ export class OrganizationService {
     });
   }
 
-  async create(data: Organization): Promise<Organization> {
+  async create(data: CreateOrganizationDto): Promise<Organization> {
     const organization = this.organizationRepository.create(data);
     return await this.organizationRepository.save(organization);
   }
@@ -46,14 +49,31 @@ export class OrganizationService {
     
   }
 
-  async createLeaveType(id: string, data: any) {
+  async createLeave(organizationId: string, createLeaveDto: CreateOrganizationLeaveTypeDto): Promise<OrgLeaveType> {
     const organization = await this.organizationRepository.findOne({
-      where: { id },
+      where: { id: organizationId },
     });
     if (!organization) {
-      throw new NotFoundException('Organization not found');
+      throw new Error('Organization not found');
     }
-    organization.orgLeaveTypes.push(data);
-    return await this.organizationRepository.save(organization);
+
+    const leave = this.orgLeaveTypeRepository.create({
+      ...createLeaveDto,
+      organization,
+    });
+
+    return this.orgLeaveTypeRepository.save(leave);
+  }
+
+  async findOneLeaveTypeByOrganization(organizationId: string, leaveTypeId: string): Promise<OrgLeaveType> {
+    return await this.orgLeaveTypeRepository.findOne({
+      where: { id: leaveTypeId, organization: { id: organizationId } },
+    });
+  }
+
+  async findALlLeaveTypesByOrganization(organizationId: string): Promise<OrgLeaveType[]> {
+    return await this.orgLeaveTypeRepository.find({
+      where: { organization: { id: organizationId } },
+    });
   }
 }
