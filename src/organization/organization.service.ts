@@ -76,4 +76,7 @@ export class OrganizationService {
       where: { organization: { id: organizationId } },
     });
   }
+
+
+  //TODO: Add update and delete methods for leave types and org
 }
