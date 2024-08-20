@@ -23,7 +23,7 @@ import { UserService } from 'src/user/user.service';
 import { Permissions } from 'src/common/decorators/permissions.decorator';
 import { PermissionsGuard } from 'src/common/guards/permissions.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { IsAdmin } from 'src/common/constants/constants';
+import { IS_ADMIN } from 'src/common/constants/constants';
 
 @ApiTags('organization')
 @Controller('organization')
@@ -32,7 +32,7 @@ import { IsAdmin } from 'src/common/constants/constants';
 export class OrganizationController {
   constructor(private organizationService: OrganizationService) {}
 
-  @Permissions(IsAdmin)
+  @Permissions(IS_ADMIN)
   @Get()
   findAll(
     @Query('inviteCode') inviteCode: string,
@@ -49,19 +49,19 @@ export class OrganizationController {
     return this.organizationService.findOne(id);
   }
 
-  @Permissions(IsAdmin)
+  @Permissions(IS_ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() data: UpdateOrganizationDto) {
     return this.organizationService.update(id, data);
   }
 
-  @Permissions(IsAdmin)
+  @Permissions(IS_ADMIN)
   @Post()
   create(@Body() data: CreateOrganizationDto, @Query('id') userId: string) {
     return this.organizationService.create(userId, data);
   }
 
-  @Permissions(IsAdmin)
+  @Permissions(IS_ADMIN)
   @Get(':id/leave')
   findAllLeave(@Param('id') organizationId: string) {
     return this.organizationService.findALlLeaveTypesByOrganization(
@@ -80,7 +80,7 @@ export class OrganizationController {
     );
   }
 
-  @Permissions(IsAdmin)
+  @Permissions(IS_ADMIN)
   @Patch(':id/leave/:leaveId')
   updateOneLeaveTypeByOrganization(
     @Param('id') organizationId: string,
@@ -94,7 +94,7 @@ export class OrganizationController {
     );
   }
 
-  @Permissions(IsAdmin)
+  @Permissions(IS_ADMIN)
   @Post(':id/leave')
   createLeaveType(
     @Param('id') organizationId: string,
@@ -103,13 +103,13 @@ export class OrganizationController {
     return this.organizationService.createLeave(organizationId, data);
   }
 
-  @Permissions(IsAdmin)
+  @Permissions(IS_ADMIN)
   @Delete(':id')
   removeOrg(@Param('id') id: string) {
     return this.organizationService.removeOrganization(id);
   }
 
-  @Permissions(IsAdmin)
+  @Permissions(IS_ADMIN)
   @Delete(':id/leave/:leaveId')
   removeLeaveType(@Param('id') id: string, @Param('leaveId') leaveId: string) {
     return this.organizationService.removeLeaveType(id, leaveId);

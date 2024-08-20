@@ -1,8 +1,18 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { LeaveService } from './leave.service';
 import { CreateLeaveDto } from './dtos/leave.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @Controller('leave')
+@UseGuards(JwtAuthGuard)
 export class LeaveController {
   constructor(private readonly leaveService: LeaveService) {}
 
