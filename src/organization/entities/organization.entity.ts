@@ -7,22 +7,26 @@ import {
   BeforeInsert,
   BeforeUpdate,
   OneToMany,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { OrgLeaveType } from './organization-leave-type.entity'; 
+import { OrgLeaveType } from './organization-leave-type.entity';
 import { v4 as uuidv4 } from 'uuid';
+import { User } from 'src/user/entities/user.entity';
+import { Team } from 'src/team/entities/team.entity';
 @Entity()
 export class Organization {
   @ApiProperty({
     example: uuidv4(),
     description: 'The generated uuid for the Organization',
   })
-  @PrimaryGeneratedColumn('uuid'
-  )
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty({
-    description: 'Invite code for the organization, use to join the organization when signing up as a member',
+    description:
+      'Invite code for the organization, use to join the organization when signing up as a member',
     maxLength: 10,
     minLength: 6,
     required: true,
@@ -61,15 +65,29 @@ export class Organization {
   })
   @OneToMany(() => OrgLeaveType, (orgLeaveType) => orgLeaveType.organization, {
     cascade: true,
-    eager: true,
   })
   orgLeaveTypes: OrgLeaveType[];
 
-  // @ApiProperty({
-  //   description: 'Types of leaves available in the organization',
-  //   type: () => [OrgLeaveType],
-  // })
-  // createdBy: string;
+  @ApiProperty({
+    description: 'Users in the organization',
+    type: () => [User],
+  })
+  @OneToMany(() => User, (user) => user.organization, {
+    cascade: true,
+  })
+  users: User[];
+
+  @OneToMany(() => Team, (team) => team.organization)
+  teams: Team[];
+
+  @ApiProperty({
+    description: 'Who created the organization',
+    type: () => [User],
+  })
+  @OneToOne(() => User)
+  @JoinColumn()
+  createdBy: User;
+
   @ApiProperty({
     description: 'The Date when the organization was created',
   })

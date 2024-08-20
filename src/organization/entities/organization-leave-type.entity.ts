@@ -1,6 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  CreateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Organization } from './organization.entity';
+import { Leave } from 'src/leave/entities/leave.entity';
 
 @Entity()
 export class OrgLeaveType {
@@ -41,6 +49,27 @@ export class OrgLeaveType {
   additionalInfo?: string;
 
   @ApiProperty({
+    description: 'Is this leave type active?',
+    required: false,
+  })
+  @Column({
+    default: true,
+    nullable: true,
+  })
+  isActive?: boolean;
+
+  @ApiProperty({
+    description:
+      'Abbreviation for this type of leave to be used in the system for filed leaves',
+    required: true,
+  })
+  @Column({
+    nullable: true,
+    length: 5,
+  })
+  abbreviation: string;
+
+  @ApiProperty({
     description: 'Maximum allowed per year for this type of leave',
     required: true,
   })
@@ -57,6 +86,14 @@ export class OrgLeaveType {
     nullable: true,
   })
   monthlyRestriction?: number;
+
+  @OneToMany(() => Leave, (leave) => leave.leaveType)
+  leaves: Leave[];
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  updated_at: Date;
 
   @ManyToOne(() => Organization, (organization) => organization.orgLeaveTypes)
   organization: Organization;
