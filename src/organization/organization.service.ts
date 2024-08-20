@@ -97,8 +97,6 @@ export class OrganizationService {
     checkIfUserIdIsValid(userId);
     const user = await this.userService.findOne(userId);
     console.log(user);
-    // Check if user is an admin
-    //TODO:move later to a guard
     if (!user) {
       throw new BadRequestException('User not found');
     }

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -10,10 +11,11 @@ import {
   Request,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dtos/user.dto';
+import { CreateUserDto, UpdateUserDto } from './dtos/user.dto';
+import { IS_ADMIN, ORGANIZATION, TEAM } from 'src/common/constants/constants';
+import { GetUser } from 'src/common/decorators/get-user.param.decorator';
+import { RequestUser } from 'src/common/types/request-user.type';
 
-const ORGANIZATION = 'organizationId';
-const TEAM = 'teamId';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -43,11 +45,22 @@ export class UserController {
   }
 
   @Patch(':id')
-  update(@Request() req: Request, @Param('id') id: string) {
-    console.log(req['user'].sub);
-    return this.userService.update(id, {
-      id: req['user'].sub,
-    });
+  update(
+    @GetUser() user: RequestUser,
+    @Body() data: UpdateUserDto,
+    @Param('id') id: string,
+  ) {
+    if (user.sub === id) {
+      return this.userService.update(id, data);
+    }
+
+    if (!user.permissions.includes(IS_ADMIN)) {
+      throw new ForbiddenException(
+        'You do not have permission to perform this action',
+      );
+    }
+
+    return this.userService.update(id, data);
   }
 
   @Delete(':id')
