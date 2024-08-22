@@ -32,7 +32,7 @@ import { JwtAuthGuard } from './common/guards/jwt.guard';
       useFactory: (appConfig: AppConfig) => ({
         type: 'postgres',
         url: appConfig.dbUrl,
-        ssl: true,
+
         logging: true,
         entities: [Organization, OrgLeaveType, User, Leave, Team],
         synchronize: true,
