@@ -60,6 +60,15 @@ export class Organization {
   description: string;
 
   @ApiProperty({
+    description: 'Organization drive link',
+    required: true,
+  })
+  @Column({
+    nullable: true,
+  })
+  driveLink?: string;
+
+  @ApiProperty({
     description: 'Types of leaves available in the organization',
     type: () => [OrgLeaveType],
   })

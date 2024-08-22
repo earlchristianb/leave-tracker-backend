@@ -24,6 +24,8 @@ import { Permissions } from 'src/common/decorators/permissions.decorator';
 import { PermissionsGuard } from 'src/common/guards/permissions.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { IS_ADMIN } from 'src/common/constants/constants';
+import { GetUser } from 'src/common/decorators/get-user.param.decorator';
+import { RequestUser } from 'src/common/types/request-user.type';
 
 @ApiTags('organization')
 @Controller('organization')
@@ -57,8 +59,8 @@ export class OrganizationController {
 
   @Permissions(IS_ADMIN)
   @Post()
-  create(@Body() data: CreateOrganizationDto, @Query('id') userId: string) {
-    return this.organizationService.create(userId, data);
+  create(@Body() data: CreateOrganizationDto, @GetUser() user: RequestUser) {
+    return this.organizationService.create(user.sub, data);
   }
 
   @Permissions(IS_ADMIN)

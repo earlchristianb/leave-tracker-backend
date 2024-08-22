@@ -35,7 +35,9 @@ export class OrganizationService {
   ) {}
 
   async findAll(): Promise<Organization[]> {
-    return await this.organizationRepository.find();
+    return await this.organizationRepository.find({
+      relations: ['teams'],
+    });
   }
 
   async findOne(id: string): Promise<Organization> {
@@ -94,6 +96,7 @@ export class OrganizationService {
     userId: string,
     data: CreateOrganizationDto,
   ): Promise<Organization> {
+    console.log(userId);
     checkIfUserIdIsValid(userId);
     const user = await this.userService.findOne(userId);
     console.log(user);
