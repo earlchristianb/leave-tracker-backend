@@ -99,6 +99,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
     user.team = team;
+    user.accountSetup = true;
     return await this.userRepository.save(user);
   }
 

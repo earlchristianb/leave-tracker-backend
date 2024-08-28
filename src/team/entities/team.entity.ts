@@ -17,7 +17,9 @@ export class Team {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   name: string;
 
   @Column({
@@ -25,7 +27,9 @@ export class Team {
   })
   description?: string;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   abbreviation: string;
 
   @Column({

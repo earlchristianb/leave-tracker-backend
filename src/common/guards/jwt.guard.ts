@@ -56,15 +56,13 @@ export class JwtAuthGuard implements CanActivate {
       const verifiedToken = this.jwtService.verify<JwtPayload>(token, {
         secret: signingKey,
       });
-       
-        if (verifiedToken.iss !== this.appConfig.requestOrigin) {
-          throw new UnauthorizedException('Invalid token issuer');
-        }
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (verifiedToken.exp < currentTime) {
-          throw new UnauthorizedException('Token has expired');
-        }
-   
+      if (verifiedToken.iss !== this.appConfig.requestOrigin) {
+        throw new UnauthorizedException('Invalid token issuer');
+      }
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (verifiedToken.exp < currentTime) {
+        throw new UnauthorizedException('Token has expired');
+      }
       request.user = {
         sub: verifiedToken.sub,
         org_code: verifiedToken.org_code,

@@ -34,18 +34,18 @@ import { RequestUser } from 'src/common/types/request-user.type';
 export class OrganizationController {
   constructor(private organizationService: OrganizationService) {}
 
-  @Permissions(IS_ADMIN)
   @Get()
-  findAll(
-    @Query('inviteCode') inviteCode: string,
-    @Query('userId') userId: string,
-  ) {
-    if (userId && inviteCode) {
-      return this.organizationService.joinOrganization(userId, inviteCode);
-    }
+  findAll() {
     return this.organizationService.findAll();
   }
 
+  @Post('join')
+  joinOrganization(
+    @Body('inviteCode') inviteCode: string,
+    @GetUser() user: RequestUser,
+  ) {
+    return this.organizationService.joinOrganization(user.sub, inviteCode);
+  }
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.organizationService.findOne(id);

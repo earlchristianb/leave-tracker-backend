@@ -69,7 +69,7 @@ export class LeaveService {
     });
   }
 
-  checkForMonthlyRestriction(
+  private checkForMonthlyRestriction(
     dates: string[],
     leaveType: OrgLeaveType,
     existingLeavesWithSameType: Leave[],

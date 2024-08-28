@@ -11,6 +11,7 @@ import { Team } from './entities/team.entity';
 import { CreateTeamDto, UpdateTeamDto } from './dtos/team.dto';
 import { isUUID } from 'class-validator';
 import { checkIfIdIsValid } from 'src/common/utils/common.utils';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class TeamService {
@@ -36,7 +37,9 @@ export class TeamService {
   }
 
   async findAll(): Promise<Team[]> {
-    return await this.teamRepository.find();
+    return await this.teamRepository.find({
+      relations: ['users'],
+    });
   }
 
   async findByOrganization(organizationId: string): Promise<Team[]> {
@@ -71,7 +74,7 @@ export class TeamService {
     return await this.teamRepository.save(team);
   }
 
-  async joinTeam(id: string, userId: string): Promise<Team> {
+  async joinTeam(id: string, userId: string): Promise<User> {
     checkIfIdIsValid(id, 'team');
     const team = await this.findOne(id);
     if (!team) {
@@ -85,8 +88,6 @@ export class TeamService {
       throw new NotFoundException('User not found');
     }
 
-    await this.userService.updateUserTeam(user.id, team);
-    team.users.push(user);
-    return await this.teamRepository.save(team);
+    return await this.userService.updateUserTeam(user.id, team);
   }
 }

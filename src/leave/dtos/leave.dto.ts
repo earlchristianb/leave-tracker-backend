@@ -26,10 +26,17 @@ export class CreateLeaveDto {
     },
   )
   @IsArray()
-  @ArrayMinSize(1)
+  @ArrayMinSize(1, {
+    message: 'Select atleast one date',
+  })
   dates: string[];
 
-  @IsUrl()
+  @IsUrl(
+    {},
+    {
+      message: 'File Link must be a valid URL',
+    },
+  )
   @IsNotEmpty()
   fileLink: string;
 

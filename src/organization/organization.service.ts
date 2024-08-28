@@ -36,7 +36,7 @@ export class OrganizationService {
 
   async findAll(): Promise<Organization[]> {
     return await this.organizationRepository.find({
-      relations: ['teams'],
+      relations: ['teams','users'],
     });
   }
 
@@ -44,7 +44,7 @@ export class OrganizationService {
     checkIfIdIsValid(id, 'organization');
     const organization = await this.organizationRepository.findOne({
       where: { id },
-      relations: ['users', 'teams'],
+      relations: ['teams','users'],
     });
     if (!organization) {
       throw new NotFoundException('Organization not found');
@@ -82,13 +82,14 @@ export class OrganizationService {
     if (user.organization) {
       throw new BadRequestException('User already belongs to an organization');
     }
-    organization.users.push(user);
+    // organization.users.push(user);
 
+    console.log('organization after pushing user', organization);
     const updatedUser = await this.userService.updateUserOrganization(
       userId,
       organization,
     );
-    await this.organizationRepository.save(organization);
+    // await this.organizationRepository.save(organization);
     return updatedUser;
   }
 
@@ -160,7 +161,7 @@ export class OrganizationService {
       organization,
     });
 
-    return this.orgLeaveTypeRepository.save(leave);
+    return await this.orgLeaveTypeRepository.save(leave);
   }
 
   async findALlLeaveTypesByOrganization(

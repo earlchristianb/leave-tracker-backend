@@ -43,7 +43,11 @@ export class User {
   })
   isActive: boolean;
 
-  //TODO: Add Team relationship after team enities are created
+  @Column({
+    nullable: true,
+    default: false,
+  })
+  accountSetup: boolean;
 
   @ManyToOne(() => Organization, (organization) => organization.users)
   organization: Organization;
