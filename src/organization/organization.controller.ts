@@ -63,7 +63,7 @@ export class OrganizationController {
     return this.organizationService.create(user.sub, data);
   }
 
-  @Permissions(IS_ADMIN)
+
   @Get(':id/leave')
   findAllLeave(@Param('id') organizationId: string) {
     return this.organizationService.findALlLeaveTypesByOrganization(
