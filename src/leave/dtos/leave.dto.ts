@@ -2,7 +2,6 @@ import { PartialType } from '@nestjs/mapped-types';
 import {
   ArrayMinSize,
   IsArray,
-  IsDate,
   IsISO8601,
   IsNotEmpty,
   IsOptional,
@@ -16,7 +15,7 @@ export class CreateLeaveDto {
   @IsUUID()
   leaveTypeId: string;
 
-  //Frontend Choose date=> convert to iso string =>make a api request => store in db
+  //Frontend Choose date=> convert to iso string =>make an api request => store in db
   @IsISO8601(
     {
       strict: true,
