@@ -11,8 +11,8 @@ import { validate as isUUID } from 'uuid';
 import { UserService } from 'src/user/user.service';
 import { OrganizationService } from 'src/organization/organization.service';
 import { checkIfUserIdIsValid } from 'src/common/utils/common.utils';
-import { generate } from 'rxjs';
 import { OrgLeaveType } from 'src/organization/entities/organization-leave-type.entity';
+
 @Injectable()
 export class LeaveService {
   constructor(
@@ -21,6 +21,7 @@ export class LeaveService {
     private userService: UserService,
     private organizationService: OrganizationService,
   ) {}
+
   async findOne(id: string): Promise<Leave> {
     checkIfUserIdIsValid(id);
     const leave = await this.leaveRepository.findOne({
@@ -33,40 +34,132 @@ export class LeaveService {
     return leave;
   }
 
-  async findAll(): Promise<Leave[]> {
-    return await this.leaveRepository.find({
+  async findAll({
+    skip,
+    limit,
+  }: {
+    skip: number;
+    limit: number;
+  }): Promise<{ data: Leave[]; total: number }> {
+    const [data, total] = await this.leaveRepository.findAndCount({
       relations: ['leaveType', 'createdBy'],
+      skip: skip,
+      take: limit,
     });
+    return { data, total };
   }
 
-  async findLeavesByLeaveType(leaveTypeId: string): Promise<Leave[]> {
-    const leaves = await this.leaveRepository.find({
+  async findLeavesByLeaveType({
+    leaveTypeId,
+    skip,
+    limit,
+  }: {
+    leaveTypeId: string;
+    skip: number;
+    limit: number;
+  }): Promise<{ data: Leave[]; total: number }> {
+    const [data, total] = await this.leaveRepository.findAndCount({
       where: { leaveType: { id: leaveTypeId } },
+      skip: skip,
+      take: limit,
     });
-    return leaves;
+    return { data, total };
   }
 
-  async findLeavesByLeaveTypeAndUser(
-    userId: string,
-    leaveTypeId: string,
-  ): Promise<Leave[]> {
+  async findLeavesByLeaveTypeAndUser({
+    userId,
+    leaveTypeId,
+    skip,
+    limit,
+  }: {
+    userId: string;
+    leaveTypeId: string;
+    skip: number;
+    limit: number;
+  }): Promise<{ data: Leave[]; total: number }> {
     if (!userId || !leaveTypeId) {
       throw new BadRequestException('User id and leave type id is required');
     }
     if (!isUUID(leaveTypeId)) {
       throw new BadRequestException('Invalid leave type id');
     }
-    return await this.leaveRepository.find({
+    const [data, total] = await this.leaveRepository.findAndCount({
       where: { createdBy: { id: userId }, leaveType: { id: leaveTypeId } },
+      skip: skip,
+      take: limit,
     });
+    return {
+      data,
+      total,
+    };
   }
 
-  async findAllLeavesByUser(userId: string): Promise<Leave[]> {
+  async findAllLeavesByUser({
+    userId,
+    skip,
+    limit,
+  }: {
+    userId: string;
+    skip: number;
+    limit: number;
+  }): Promise<{ data: Leave[]; total: number }> {
     checkIfUserIdIsValid(userId);
-    return await this.leaveRepository.find({
+    const [data, total] = await this.leaveRepository.findAndCount({
       where: { createdBy: { id: userId } },
       relations: ['leaveType'],
+      skip: skip,
+      take: limit,
     });
+    return {
+      data,
+      total,
+    };
+  }
+
+  async create(userId: string, data: CreateLeaveDto): Promise<Leave> {
+    checkIfUserIdIsValid(userId);
+    const user = await this.userService.findOne(userId);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    console.log('user', user);
+
+    const leaveType =
+      await this.organizationService.findOneLeaveTypeByOrganization(
+        user.organization.id,
+        data.leaveTypeId,
+      );
+
+    console.log('leaveType', leaveType);
+
+    const { data: existingLeavesWithSameType } =
+      await this.findLeavesByLeaveTypeAndUser({
+        userId: userId,
+        leaveTypeId: leaveType.id,
+        skip: 0,
+        limit: Number.MAX_SAFE_INTEGER,
+      });
+
+    if (
+      leaveType.monthlyRestriction > 0 &&
+      existingLeavesWithSameType.length > 0
+    ) {
+      this.checkForMonthlyRestriction(
+        data.dates,
+        leaveType,
+        existingLeavesWithSameType,
+      );
+    }
+
+    delete data.leaveTypeId;
+    const leave = this.leaveRepository.create({
+      ...data,
+      leaveType,
+      createdBy: user,
+    });
+
+    return await this.leaveRepository.save(leave);
   }
 
   private checkForMonthlyRestriction(
@@ -93,49 +186,5 @@ export class LeaveService {
     if (hitCount >= restriction) {
       throw new BadRequestException('Monthly restriction exceeded');
     }
-  }
-
-  async create(userId: string, data: CreateLeaveDto): Promise<Leave> {
-    checkIfUserIdIsValid(userId);
-    const user = await this.userService.findOne(userId);
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-
-    console.log('user', user);
-
-    const leaveType =
-      await this.organizationService.findOneLeaveTypeByOrganization(
-        user.organization.id,
-        data.leaveTypeId,
-      );
-
-    console.log('leaveType', leaveType);
-
-    const existingLeavesWithSameType = await this.findLeavesByLeaveTypeAndUser(
-      userId,
-      leaveType.id,
-    );
-
-    if (
-      leaveType.monthlyRestriction > 0 &&
-      existingLeavesWithSameType.length > 0
-    ) {
-      this.checkForMonthlyRestriction(
-        data.dates,
-        leaveType,
-        existingLeavesWithSameType,
-      );
-    }
-
-    delete data.leaveTypeId;
-    const leave = this.leaveRepository.create({
-      ...data,
-      leaveType,
-      createdBy: user,
-    });
-
-    const savedLeave = await this.leaveRepository.save(leave);
-    return savedLeave;
   }
 }

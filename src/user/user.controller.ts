@@ -8,7 +8,6 @@ import {
   Patch,
   Post,
   Query,
-  Request,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -29,14 +28,38 @@ export class UserController {
   findAll(
     @Query(ORGANIZATION) organizationId: string,
     @Query(TEAM) teamId: string,
+    @Query('skip') skip: string,
+    @Query('limit') limit: string,
+    @Query('search') search: string,
   ) {
+    console.log('skip', skip);
+    console.log('limit', limit);
+    console.log('search', search);
+    const parsedSkip = parseInt(skip, 10) || 0;
+    const parsedLimit =
+      limit === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(limit, 10) || 10;
+
     if (organizationId) {
-      return this.userService.findAllByOrganization(organizationId);
+      return this.userService.findAllByOrganization({
+        organizationId,
+        skip: parsedSkip,
+        limit: parsedLimit,
+        search,
+      });
     }
     if (teamId) {
-      return this.userService.findAllByTeam(teamId);
+      return this.userService.findAllByTeam({
+        teamId,
+        skip: parsedSkip,
+        limit: parsedLimit,
+        search,
+      });
     }
-    return this.userService.findAll();
+    return this.userService.findAll({
+      skip: parsedSkip,
+      limit: parsedLimit,
+      search,
+    });
   }
 
   @Get(':id')

@@ -1,19 +1,17 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
-  BadRequestException,
-  UseGuards,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { CreateUserDto, UpdateUserDto } from './dtos/user.dto';
-import { OrganizationService } from 'src/organization/organization.service';
 import { Organization } from 'src/organization/entities/organization.entity';
-import { UserRole } from './enums/user-role.enum';
 import { validate as isUUID } from 'uuid';
 import { Team } from 'src/team/entities/team.entity';
 import { checkIfIdIsValid } from 'src/common/utils/common.utils';
+
 @Injectable()
 export class UserService {
   constructor(
@@ -37,8 +35,28 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
-  async findAll() {
-    return await this.userRepository.find();
+  async findAll({
+    skip,
+    limit,
+    search,
+  }: {
+    skip: number;
+    limit: number;
+    search?: string;
+  }) {
+    const whereCondition = search
+      ? [{ email: Like(`%${search}%`) }, { name: Like(`%${search}%`) }]
+      : {};
+    const [data, total] = await this.userRepository.findAndCount({
+      where: whereCondition,
+      skip: skip,
+      take: limit,
+      relations: ['organization', 'team'],
+    });
+    return {
+      data,
+      total,
+    };
   }
 
   async findOne(id: string) {
@@ -51,25 +69,70 @@ export class UserService {
     });
   }
 
-  findAllByTeam(teamId: string) {
+  async findAllByTeam({
+    teamId,
+    skip,
+    limit,
+    search,
+  }: {
+    teamId: string;
+    skip: number;
+    limit: number;
+    search?: string;
+  }) {
     checkIfIdIsValid(teamId, 'team');
-    return this.userRepository.find({
-      where: { team: { id: teamId } },
+    const whereCondition = search
+      ? [
+          { team: { id: teamId }, name: Like(`%${search}%`) },
+          { team: { id: teamId }, email: Like(`%${search}%`) },
+        ]
+      : { team: { id: teamId } };
+    const [data, total] = await this.userRepository.findAndCount({
+      where: whereCondition,
+      relations: ['organization', 'team'],
+      skip: skip,
+      take: limit,
     });
+    return {
+      data,
+      total,
+    };
   }
 
-  async findAllByOrganization(organizationId: string) {
+  async findAllByOrganization({
+    organizationId,
+    skip,
+    limit,
+    search,
+  }: {
+    organizationId: string;
+    skip: number;
+    limit: number;
+    search?: string;
+  }) {
     if (!isUUID(organizationId)) {
       throw new BadRequestException('Invalid Organization Id');
     }
-
     if (!organizationId) {
       throw new BadRequestException('Organization Id is required');
     }
-    return await this.userRepository.find({
-      where: { organization: { id: organizationId } },
+
+    const whereCondition = search
+      ? [
+          { organization: { id: organizationId }, name: Like(`%${search}%`) },
+          { organization: { id: organizationId }, email: Like(`%${search}%`) },
+        ]
+      : { organization: { id: organizationId } };
+    const [data, total] = await this.userRepository.findAndCount({
+      where: whereCondition,
       relations: ['organization', 'team'],
+      skip: skip,
+      take: limit,
     });
+    return {
+      data,
+      total,
+    };
   }
 
   async update(id: string, data: UpdateUserDto) {
