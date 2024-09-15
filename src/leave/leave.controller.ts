@@ -31,6 +31,7 @@ export class LeaveController {
       limit === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(limit, 10) || 10;
 
     if (userId && leaveTypeId) {
+      console.log('userId and leaveTypeId');
       return this.leaveService.findLeavesByLeaveTypeAndUser({
         userId,
         leaveTypeId,
@@ -39,6 +40,7 @@ export class LeaveController {
       });
     }
     if (userId) {
+      console.log('userId');
       return this.leaveService.findAllLeavesByUser({
         userId,
         skip: parsedSkip,
@@ -46,12 +48,14 @@ export class LeaveController {
       });
     }
     if (leaveTypeId) {
+      console.log(' leaveTypeId');
       return this.leaveService.findLeavesByLeaveType({
         leaveTypeId,
         skip: parsedSkip,
         limit: parsedLimit,
       });
     }
+    console.log('findall');
     return this.leaveService.findAll({
       skip: parsedSkip,
       limit: parsedLimit,

@@ -1,17 +1,13 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Leave } from './entities/leave.entity';
-import { CreateLeaveDto } from './dtos/leave.dto';
-import { validate as isUUID } from 'uuid';
-import { UserService } from 'src/user/user.service';
-import { OrganizationService } from 'src/organization/organization.service';
-import { checkIfUserIdIsValid } from 'src/common/utils/common.utils';
-import { OrgLeaveType } from 'src/organization/entities/organization-leave-type.entity';
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Leave } from "./entities/leave.entity";
+import { CreateLeaveDto } from "./dtos/leave.dto";
+import { validate as isUUID } from "uuid";
+import { UserService } from "src/user/user.service";
+import { OrganizationService } from "src/organization/organization.service";
+import { checkIfUserIdIsValid } from "src/common/utils/common.utils";
+import { OrgLeaveType } from "src/organization/entities/organization-leave-type.entity";
 
 @Injectable()
 export class LeaveService {
@@ -62,6 +58,7 @@ export class LeaveService {
       where: { leaveType: { id: leaveTypeId } },
       skip: skip,
       take: limit,
+      relations: ['leaveType', 'createdBy'],
     });
     return { data, total };
   }
@@ -85,6 +82,7 @@ export class LeaveService {
     }
     const [data, total] = await this.leaveRepository.findAndCount({
       where: { createdBy: { id: userId }, leaveType: { id: leaveTypeId } },
+      relations: ['leaveType', 'createdBy'],
       skip: skip,
       take: limit,
     });
